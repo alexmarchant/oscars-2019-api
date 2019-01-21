@@ -58,11 +58,11 @@ JWT payload:
 }
 ```
 
-### Picks
+### Selection
 
 #### POST /users/:id/selections
 
-Sets a new pick
+Creates new selections
 
 Auth: Must pass token as `Authorization: Bearer <token>`
 
