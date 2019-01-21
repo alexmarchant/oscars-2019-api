@@ -3,8 +3,19 @@ package main
 import (
   "github.com/dgrijalva/jwt-go"
   "golang.org/x/crypto/bcrypt"
+  "net/http"
+  "errors"
+  "strings"
   "log"
+  "fmt"
 )
+
+type TokenClaims struct {
+  Id int64 `json:"id"`
+  Email string `json:"email"`
+  Admin bool `json:"admin"`
+  jwt.StandardClaims
+}
 
 func HashAndSalt(password string) string {
   passwordBytes := []byte(password)
@@ -27,11 +38,73 @@ func ComparePasswords(password string, passwordHash string) bool {
   return true
 }
 
-func MakeToken(id int64, email string, admin bool) (string, error) {
-  token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-    "id": id,
-    "email": email,
-    "admin": admin,
-  })
+func MakeToken(claims *TokenClaims) (string, error) {
+  token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
   return token.SignedString([]byte(tokenSecret))
+}
+
+func getAuthTokenString(r *http.Request) (string, error) {
+  var tokenString string
+
+  // Get header
+  val := r.Header["Authorization"]
+  if len(val) == 0 {
+    return tokenString, errors.New("Header not found")
+  }
+
+  // Parse out bearer
+  tokenString = strings.TrimPrefix(val[0], "Bearer ")
+  return tokenString, nil
+}
+
+func getAuthTokenClaims(r *http.Request) (*TokenClaims, error) {
+  // Get token string
+  tokenString, err := getAuthTokenString(r)
+  if err != nil {
+    return nil, err
+  }
+
+  // Decode token
+  token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+    // Validate method is what we expect
+    if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+      return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+    }
+    return []byte(tokenSecret), nil
+  })
+
+  // Get claims
+  if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
+    return claims, nil
+  } else {
+    return nil, err
+  }
+}
+
+func AuthorizeUser(r *http.Request, id int64) bool {
+  claims, err := getAuthTokenClaims(r)
+  if err != nil {
+    log.Printf("Error authorizing user: %v", err)
+    return false
+  }
+
+  if claims.Id == id {
+    return true
+  } else {
+    return false
+  }
+}
+
+func AuthorizeAdmin(r *http.Request) bool {
+  claims, err := getAuthTokenClaims(r)
+  if err != nil {
+    log.Printf("Error authorizing user: %v", err)
+    return false
+  }
+
+  if claims.Admin {
+    return true
+  } else {
+    return false
+  }
 }

@@ -4,13 +4,14 @@ import (
   "github.com/gorilla/mux"
   "encoding/json"
   "net/http"
+  "strconv"
   "log"
   "fmt"
 )
 
 func PicksRegisterHandlers(r *mux.Router) {
   r.HandleFunc("/users/{id}/picks", PicksReadHandler).Methods("GET")
-  r.HandleFunc("/users/{id}/picks", PicksUpdateHandler).Methods("PUT")
+  r.HandleFunc("/users/{id}/picks", PicksUpdateHandler).Methods("POST")
 }
 
 func PicksReadHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,10 +46,27 @@ func PicksUpdateHandler(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
   id := vars["id"]
 
+  // Parse id to int
+  id64, err := strconv.ParseInt(id, 10, 64)
+  if err != nil {
+    w.WriteHeader(http.StatusBadRequest)
+    SendJson(w, JsonError{ Error: "Invalid id" })
+    log.Print("Invalid id")
+    return
+  }
+
+  // Authorize user
+  if !AuthorizeUser(r, id64) {
+    w.WriteHeader(http.StatusBadRequest)
+    SendJson(w, JsonError{ Error: "Not authorized to edit this user's picks" })
+    log.Print("Not authorized to edit this user's picks")
+    return
+  }
+
   // Parse request
   decoder := json.NewDecoder(r.Body)
   var body PicksUpdateRequest
-  err := decoder.Decode(&body)
+  err = decoder.Decode(&body)
   if err != nil {
     w.WriteHeader(http.StatusBadRequest)
     SendJson(w, JsonError{ Error: "Error parsing request" })

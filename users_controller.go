@@ -71,7 +71,12 @@ func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // Create JWT Token
-  token, err := MakeToken(id, body.Email, false)
+  claims := &TokenClaims{
+    Id: id,
+    Email: body.Email,
+    Admin: false,
+  }
+  token, err := MakeToken(claims)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error creating token" })

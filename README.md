@@ -109,7 +109,7 @@ Expected response:
 ]
 ```
 
-#### PUT /users/:id/picks
+#### POST /users/:id/picks
 
 *REQUIRES AUTH*
 
@@ -126,6 +126,33 @@ Expected request:
   {
     "category": "Best Director",
     "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+  }
+]
+```
+
+Expected response:
+
+Status 200
+
+### Winners
+
+#### POST /winners
+
+*REQUIRES AUTH: must be an admin*
+
+Updates winning picks
+
+Expected request:
+
+```json
+[
+  {
+    "category": "Best Picture",
+    "winner": "Spider-Man: Into the Spider-Verse"
+  },
+  {
+    "category": "Best Director",
+    "winner": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
   }
 ]
 ```

@@ -62,7 +62,12 @@ func TokensCreateHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // Create token
-  token, err := MakeToken(id, body.Email, admin)
+  claims := &TokenClaims{
+    Id: id,
+    Email: body.Email,
+    Admin: admin,
+  }
+  token, err := MakeToken(claims)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error creating token" })

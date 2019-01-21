@@ -17,6 +17,7 @@ func main() {
   UsersRegisterHandlers(r)
   TokensRegisterHandlers(r)
   PicksRegisterHandlers(r)
+  WinnersRegisterHandlers(r)
 
   // Start server
   http.Handle("/", r)
