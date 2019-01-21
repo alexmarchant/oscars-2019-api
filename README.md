@@ -57,3 +57,30 @@ JWT payload:
   "email": "alexjmarchant@gmail.com"
 }
 ```
+
+### Picks
+
+#### POST /users/:id/selections
+
+Sets a new pick
+
+Auth: Must pass token as `Authorization: Bearer <token>`
+
+Expected request:
+
+```json
+[
+  {
+    "category": "Best Picture",
+    "selection": "Spider-Man: Into the Spider-Verse"
+  },
+  {
+    "category": "Best Director",
+    "selection": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+  }
+]
+```
+
+Expected response:
+
+Status 201
