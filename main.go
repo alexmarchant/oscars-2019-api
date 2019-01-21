@@ -1,9 +1,9 @@
 package main
 
 import (
-  "io"
   "github.com/gorilla/mux"
   "net/http"
+  "io"
 )
 
 func main() {
@@ -16,6 +16,7 @@ func main() {
   r.HandleFunc("/", HomeHandler)
   UsersRegisterHandlers(r)
   TokensRegisterHandlers(r)
+  PicksRegisterHandlers(r)
 
   // Start server
   http.Handle("/", r)

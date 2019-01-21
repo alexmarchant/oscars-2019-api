@@ -109,7 +109,7 @@ Expected response:
 ]
 ```
 
-#### POST /users/:id/picks
+#### PUT /users/:id/picks
 
 *REQUIRES AUTH*
 
