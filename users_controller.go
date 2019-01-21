@@ -40,6 +40,14 @@ func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  // Check password length
+  if len(body.Password) < 6 {
+    w.WriteHeader(http.StatusBadRequest)
+    SendJson(w, JsonError{ Error: "Password must be at least 6 characters long" })
+    log.Print("Password must be at least 6 characters long")
+    return
+  }
+
   // Check if user exists
   var id int64
   err = db.QueryRow("SELECT id FROM users WHERE email = $1", body.Email).Scan(&id)
@@ -50,6 +58,7 @@ func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  // Hash pw
   passwordHash := HashAndSalt(body.Password)
 
   // Create user
@@ -61,9 +70,18 @@ func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  // Create JWT Token
+  token, err := MakeToken(id, body.Email, false)
+  if err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Error creating token" })
+    log.Printf("Error creating token: %s", err)
+    return
+  }
+
   // Respond
   w.WriteHeader(http.StatusCreated)
-  SendJson(w, UsersCreateResponse{ Id: id })
+  SendJson(w, UsersCreateResponse{ Token: token })
 }
 
 type UsersCreateRequest struct {
@@ -73,7 +91,7 @@ type UsersCreateRequest struct {
 }
 
 type UsersCreateResponse struct {
-  Id int64 `json:"id"`
+  Token string `json:"token"`
 }
 
 func UsersIndexHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+  "github.com/dgrijalva/jwt-go"
   "golang.org/x/crypto/bcrypt"
   "log"
 )
@@ -24,4 +25,13 @@ func ComparePasswords(password string, passwordHash string) bool {
   }
 
   return true
+}
+
+func MakeToken(id int64, email string, admin bool) (string, error) {
+  token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+    "id": id,
+    "email": email,
+    "admin": admin,
+  })
+  return token.SignedString([]byte(tokenSecret))
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-  "github.com/dgrijalva/jwt-go"
   "github.com/gorilla/mux"
   "encoding/json"
   "net/http"
@@ -63,14 +62,7 @@ func TokensCreateHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // Create token
-  token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-    "id": id,
-    "email": body.Email,
-    "admin": admin,
-  })
-  tokenString, err := token.SignedString([]byte(tokenSecret))
-
-  // Return token
+  token, err := MakeToken(id, body.Email, admin)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error creating token" })
@@ -78,8 +70,9 @@ func TokensCreateHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  // Respond
   w.WriteHeader(http.StatusCreated)
-  SendJson(w, TokensCreateResponse{ Token: tokenString })
+  SendJson(w, TokensCreateResponse{ Token: token })
 }
 
 type TokensCreateRequest struct {
