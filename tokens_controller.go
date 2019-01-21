@@ -64,9 +64,9 @@ func TokensCreateHandler(w http.ResponseWriter, r *http.Request) {
 
   // Create token
   token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-      "id": id,
-      "email": body.Email,
-      "admin": admin,
+    "id": id,
+    "email": body.Email,
+    "admin": admin,
   })
   tokenString, err := token.SignedString([]byte(tokenSecret))
 
