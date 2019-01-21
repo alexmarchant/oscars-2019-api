@@ -142,6 +142,7 @@ JWT payload:
 
 ```json
 {
+  "id": 1,
   "admin": true,
   "email": "alexjmarchant@gmail.com"
 }
