@@ -12,9 +12,9 @@ Expected request:
 
 ```json
 {
-	"email": "alexjmarchant@gmail.com",
-	"password": "12345678",
-	"passwordConfirmation": "12345678"
+  "email": "alexjmarchant@gmail.com",
+  "password": "12345678",
+  "passwordConfirmation": "12345678"
 }
 ```
 
@@ -36,8 +36,8 @@ Expected request:
 
 ```json
 {
-	"email": "alexjmarchant@gmail.com",
-	"password": "12345678"
+  "email": "alexjmarchant@gmail.com",
+  "password": "12345678"
 }
 ```
 
