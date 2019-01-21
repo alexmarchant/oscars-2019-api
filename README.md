@@ -58,11 +58,11 @@ JWT payload:
 }
 ```
 
-### Selection
+### Picks
 
-#### POST /users/:id/selections
+#### POST /users/:id/picks
 
-Creates new selections
+Creates new picks
 
 Auth: Must pass token as `Authorization: Bearer <token>`
 
@@ -72,11 +72,11 @@ Expected request:
 [
   {
     "category": "Best Picture",
-    "selection": "Spider-Man: Into the Spider-Verse"
+    "pick": "Spider-Man: Into the Spider-Verse"
   },
   {
     "category": "Best Director",
-    "selection": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+    "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
   }
 ]
 ```
