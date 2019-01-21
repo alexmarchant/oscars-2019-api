@@ -7,14 +7,15 @@ import (
   "log"
 )
 
-func RegisterUserHandlers(r *mux.Router) {
-  r.HandleFunc("/users", CreateUserHandler).Methods("POST")
+func UsersRegisterHandlers(r *mux.Router) {
+  r.HandleFunc("/users", UsersCreateHandler).Methods("POST")
+  r.HandleFunc("/users", UsersIndexHandler).Methods("GET")
 }
 
-func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
   // Parse request
   decoder := json.NewDecoder(r.Body)
-  var body UserCreateRequest
+  var body UsersCreateRequest
   err := decoder.Decode(&body)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
@@ -60,16 +61,68 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  // Respond
   w.WriteHeader(http.StatusCreated)
-  SendJson(w, UserCreatedResponses{ Id: id })
+  SendJson(w, UsersCreateResponse{ Id: id })
 }
 
-type UserCreateRequest struct {
+type UsersCreateRequest struct {
   Email string `json:"email"`
   Password string `json:"password"`
   PasswordConfirmation string `json:"passwordConfirmation"`
 }
 
-type UserCreatedResponses struct {
+type UsersCreateResponse struct {
   Id int64 `json:"id"`
 }
+
+func UsersIndexHandler(w http.ResponseWriter, r *http.Request) {
+  // Query users
+  rows, err := db.Query("SELECT id, email, picks FROM users")
+  if err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Error querying database" })
+    log.Printf("Error querying database: %v", err)
+    return
+  }
+
+  var users = []UsersIndexUser{}
+
+  // Iterate over users
+  for rows.Next() {
+    var user UsersIndexUser
+    var picks string
+
+    err := rows.Scan(&user.Id, &user.Email, &picks)
+    if err != nil {
+      w.WriteHeader(http.StatusInternalServerError)
+      SendJson(w, JsonError{ Error: "Error querying database" })
+      log.Printf("Error querying database: %v", err)
+      return
+    }
+
+    // Convert picks to bytes for json.RawMessage
+    user.Picks = []byte(picks)
+    users = append(users, user)
+  }
+
+  // Check iteration for errors
+  if err := rows.Err(); err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Error querying database" })
+    log.Printf("Error querying database: %v", err)
+    return
+  }
+
+  // Respond
+  w.WriteHeader(http.StatusOK)
+  SendJson(w, users)
+}
+
+type UsersIndexUser struct {
+  Id int64 `json:"id"`
+  Email string `json:"email"`
+  Picks json.RawMessage `json:"picks"`
+}
+
+type UsersIndexResponse []UsersIndexUser

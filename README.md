@@ -4,6 +4,45 @@
 
 ### Users
 
+#### GET /users
+
+Gets all users and their picks
+
+Expected response:
+
+```json
+[
+  {
+    "id": 1,
+    "email": "alexjmarchant@gmail.com",
+    "picks": [
+      {
+        "category": "Best Picture",
+        "pick": "Spider-Man: Into the Spider-Verse"
+      },
+      {
+        "category": "Best Director",
+        "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "email": "larsonlaidlaw@gmail.com",
+    "picks": [
+      {
+        "category": "Best Picture",
+        "pick": "Spider-Man: Into the Spider-Verse"
+      },
+      {
+        "category": "Best Director",
+        "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+      }
+    ]
+  }
+]
+```
+
 #### POST /users
 
 Creates a new user
@@ -49,22 +88,32 @@ Expected response:
 }
 ```
 
-JWT payload:
+### Picks
+
+#### GET /users/:id/picks
+
+Gets a single user's picks
+
+Expected response:
 
 ```json
-{
-  "admin": true,
-  "email": "alexjmarchant@gmail.com"
-}
+[
+  {
+    "category": "Best Picture",
+    "pick": "Spider-Man: Into the Spider-Verse"
+  },
+  {
+    "category": "Best Director",
+    "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+  }
+]
 ```
-
-### Picks
 
 #### POST /users/:id/picks
 
-Creates new picks
+*REQUIRES AUTH*
 
-Auth: Must pass token as `Authorization: Bearer <token>`
+Creates/updates a user's picks
 
 Expected request:
 
@@ -84,3 +133,26 @@ Expected request:
 Expected response:
 
 Status 201
+
+## Auth
+
+Must pass token in a header: `Authorization: Bearer <token>`
+
+JWT payload:
+
+```json
+{
+  "admin": true,
+  "email": "alexjmarchant@gmail.com"
+}
+```
+
+## Errors
+
+All errors respond with an error message and an appropriate status code:
+
+```json
+{
+  "error": "Example error message"
+}
+```

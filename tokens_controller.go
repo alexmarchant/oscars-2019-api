@@ -11,7 +11,7 @@ import (
 
 var tokenSecret string
 
-func RegisterTokenHandlers(r *mux.Router) {
+func TokensRegisterHandlers(r *mux.Router) {
   // Ensure secret
   tokenSecret = os.Getenv("TOKEN_SECRET")
   if tokenSecret == "" {
@@ -19,13 +19,13 @@ func RegisterTokenHandlers(r *mux.Router) {
   }
 
   // Register routes
-  r.HandleFunc("/tokens", CreateTokenHandler).Methods("POST")
+  r.HandleFunc("/tokens", TokensCreateHandler).Methods("POST")
 }
 
-func CreateTokenHandler(w http.ResponseWriter, r *http.Request) {
+func TokensCreateHandler(w http.ResponseWriter, r *http.Request) {
   // Parse request
   decoder := json.NewDecoder(r.Body)
-  var body TokenCreateRequest
+  var body TokensCreateRequest
   err := decoder.Decode(&body)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
@@ -78,14 +78,14 @@ func CreateTokenHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   w.WriteHeader(http.StatusCreated)
-  SendJson(w, TokenCreateResponse{ Token: tokenString })
+  SendJson(w, TokensCreateResponse{ Token: tokenString })
 }
 
-type TokenCreateRequest struct {
+type TokensCreateRequest struct {
   Email string `json:"email"`
   Password string `json:"password"`
 }
 
-type TokenCreateResponse struct {
+type TokensCreateResponse struct {
   Token string `json:"token"`
 }

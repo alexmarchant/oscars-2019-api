@@ -14,8 +14,8 @@ func main() {
 
   // Routes
   r.HandleFunc("/", HomeHandler)
-  RegisterUserHandlers(r)
-  RegisterTokenHandlers(r)
+  UsersRegisterHandlers(r)
+  TokensRegisterHandlers(r)
 
   // Start server
   http.Handle("/", r)
