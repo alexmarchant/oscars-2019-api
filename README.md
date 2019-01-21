@@ -48,3 +48,12 @@ Expected response:
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoiYWxleGptYXJjaGFudEBnbWFpbC5jb20ifQ.lTKwBXQ09u7JEscdJLDMidHLYLOBvKym8Or7UWsJGXo"
 }
 ```
+
+JWT payload:
+
+```json
+{
+  "admin": true,
+  "email": "alexjmarchant@gmail.com"
+}
+```
