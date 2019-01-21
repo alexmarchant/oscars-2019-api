@@ -132,7 +132,7 @@ Expected request:
 
 Expected response:
 
-Status 201
+Status 200
 
 ## Auth
 
