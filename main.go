@@ -12,10 +12,10 @@ func main() {
   // DB
   ConnectDB()
 
-  // Handlers
+  // Routes
   r.HandleFunc("/", HomeHandler)
-  RegisterSessionHandlers(r)
   RegisterUserHandlers(r)
+  RegisterTokenHandlers(r)
 
   // Start server
   http.Handle("/", r)

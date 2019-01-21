@@ -17,6 +17,14 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
   var body UserCreateRequest
   err := decoder.Decode(&body)
   if err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Error parsing request" })
+    log.Print("Error parsing request")
+    return
+  }
+
+  // Validate request
+  if body.Email == "" || body.Password == "" || body.PasswordConfirmation == "" {
     w.WriteHeader(http.StatusBadRequest)
     SendJson(w, JsonError{ Error: "Missing required params" })
     log.Print("Missing required params")
