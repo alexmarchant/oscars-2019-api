@@ -4,20 +4,20 @@ import (
 	"database/sql"
 	_ "github.com/lib/pq"
   "os"
-  "fmt"
   "log"
 )
 
 var db *sql.DB
 
 func ConnectDB() {
-  pgUser := os.Getenv("PG_USER")
-  pgDbName := os.Getenv("PG_DB_NAME")
-	connStr := fmt.Sprintf("user=%s dbname=%s sslmode=disable", pgUser, pgDbName)
+  pgURL := os.Getenv("PG_URL")
+  if pgURL == "" {
+    log.Fatal("Missing PG_URL")
+  }
 
   // Create connection pointer
   var err error
-  db, err = sql.Open("postgres", connStr)
+  db, err = sql.Open("postgres", pgURL)
   if err != nil {
     log.Fatal(err)
   }
