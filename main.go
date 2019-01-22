@@ -26,5 +26,5 @@ func main() {
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(http.StatusOK)
-  io.WriteString(w, "OK")
+  io.WriteString(w, "OK, CD Working")
 }
