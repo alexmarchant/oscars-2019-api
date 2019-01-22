@@ -1,6 +1,7 @@
 package main
 
 import (
+  "github.com/gorilla/handlers"
   "github.com/gorilla/mux"
   "net/http"
   "io"
@@ -21,7 +22,7 @@ func main() {
 
   // Start server
   http.Handle("/", r)
-  http.ListenAndServe(":3000", r)
+  http.ListenAndServe(":3000", handlers.CORS()(r))
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
