@@ -8,18 +8,17 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-
 cache:
   paths:
-    - /apt-cache
+    - /var/cache/apk
 
 stages:
   - build
   - release
 
 build:
+	before_script:
+		- docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   stage: build
   script:
     - docker pull $CONTAINER_IMAGE:latest || true
@@ -29,12 +28,12 @@ build:
 
 release:
   before_script:
-    # Install kubectl
-    - apt-get update && apt-get install -y apt-transport-https curl
-    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-    - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-    - sudo apt-get update
-    - sudo apt-get install -y kubectl
+		# Install kubectl
+		- apk add curl 
+		- apk add --update ca-certificates
+		- apk add --update -t deps curl
+		- curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBE_LATEST_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
+		- chmod +x /usr/local/bin/kubectl
     # Spit out kube config
     - echo "${KUBECONFIG}" | base64 --decode >> kubeconfig.yml
   stage: release
