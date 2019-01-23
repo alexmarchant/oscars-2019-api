@@ -38,4 +38,4 @@ release:
     - cat kubeconfig.yml
   stage: release
   script:
-    - kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+    - bash -c kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
