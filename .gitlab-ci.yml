@@ -17,15 +17,22 @@ stages:
   - release
 
 before_script:
-  stage: build, release
-    - apt-get update
-    - apt-get install -y curl apt-transport-https
+  # Deps
+  - apt-get update
+  - apt-get install -y curl apt-transport-https
+  # install docker
+  - curl -fsSL https://get.docker.com -o get-docker.sh
+  - sh get-docker.sh
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  # Install kubectl
+  - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+  - sudo apt-get update
+  - sudo apt-get install -y kubectl
+  # Spit out kube config
+  - echo "${KUBECONFIG}" | base64 -d >> kubeconfig.yml
 
 build:
-  before_script:
-    - curl -fsSL https://get.docker.com -o get-docker.sh
-    - sh get-docker.sh
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   stage: build
   script:
     - docker pull $CONTAINER_IMAGE:latest || true
@@ -34,14 +41,6 @@ build:
     - docker push $CONTAINER_IMAGE:latest
 
 release:
-  before_script:
-    # Install kubectl
-    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-    - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-    - sudo apt-get update
-    - sudo apt-get install -y kubectl
-    # Spit out kube config
-    - echo "${KUBECONFIG}" | base64 -d >> kubeconfig.yml
   stage: release
   script:
     - kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
