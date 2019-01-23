@@ -1,17 +1,19 @@
 image: docker:stable
 
-variables:
-  DOCKER_HOST: tcp://docker:2375/
-  DOCKER_DRIVER: overlay2
-
 services:
   - docker:dind
+
+variables:
+  CONTAINER_IMAGE: registry.gitlab.com/$CI_PROJECT_PATH
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
 
 cache:
   paths:
     - /apt-cache
-    - /go/src/github.com
-    - /go/src/golang.org
 
 stages:
   - build
@@ -20,10 +22,10 @@ stages:
 build:
   stage: build
   script:
-    - pwd
-    - docker build -t alexmarchant/oscars-2019-api:latest .
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker push alexmarchant/oscars-2019-api:latest
+		- docker pull $CONTAINER_IMAGE:latest || true
+    - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_COMMIT_SHA --tag $CONTAINER_IMAGE:latest .
+    - docker push $CONTAINER_IMAGE:$CI_COMMIT_SHA
+		- docker push $CONTAINER_IMAGE:latest
 
 release:
   before_script:
