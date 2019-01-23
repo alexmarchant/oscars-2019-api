@@ -18,7 +18,8 @@ stages:
 
 build:
   before_script:
-    - apt-get install docker-ce
+    - curl -fsSL https://get.docker.com -o get-docker.sh
+    - sh get-docker.sh
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   stage: build
   script:
