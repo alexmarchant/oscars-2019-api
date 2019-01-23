@@ -35,7 +35,6 @@ release:
     - chmod +x /usr/local/bin/kubectl
       # Spit out kube config
     - echo "${KUBECONFIG}" | base64 -d >> kubeconfig.yml
-    - cat kubeconfig.yml
   stage: release
   script:
-    - kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"$(date +'%s')\"}}}}}"
+    - kubectl --kubeconfig="kubeconfig.yml" get deployments
