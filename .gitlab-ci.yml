@@ -11,7 +11,7 @@ stages:
   - release
 
 build:
-  before_scripts:
+  before_script:
     # Login to docker
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   stage: build
@@ -20,7 +20,7 @@ build:
     - docker push alexmarchant/oscars-2019-api:latest
 
 release:
-  before_scripts:
+  before_script:
     # Install kubectl
     - sudo apt-get update && sudo apt-get install -y apt-transport-https
     - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
