@@ -29,13 +29,12 @@ build:
 release:
   before_script:
     # Install kubectl
-    - apk add curl 
     - apk add --update ca-certificates
     - apk add --update -t deps curl
     - curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBE_LATEST_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
     - chmod +x /usr/local/bin/kubectl
       # Spit out kube config
-    - echo "${KUBECONFIG}" | base64 --decode >> kubeconfig.yml
+    - echo "${KUBECONFIG}" | base64 -d >> kubeconfig.yml
   stage: release
   script:
     - kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
