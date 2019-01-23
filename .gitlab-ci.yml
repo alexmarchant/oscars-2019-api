@@ -8,11 +8,6 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
 
-before_script:
-  # Setup deps
-  - apt-get update
-  - apt-get install -y curl apt-transport-https
-
 cache:
   paths:
     - /apt-cache
@@ -23,6 +18,8 @@ stages:
 
 build:
   before_script:
+    - apt-get update
+    - apt-get install -y curl
     - curl -fsSL https://get.docker.com -o get-docker.sh
     - sh get-docker.sh
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
@@ -36,6 +33,8 @@ build:
 release:
   before_script:
     # Install kubectl
+    - apt-get update
+    - apt-get install -y apt-transport-https
     - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
     - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
     - sudo apt-get update
