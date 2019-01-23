@@ -1,4 +1,4 @@
-image: docker:stable
+image: ubuntu:18.04
 
 services:
   - docker:dind
@@ -10,7 +10,7 @@ variables:
 
 cache:
   paths:
-    - /var/cache/apk
+    - /apt-cache
 
 stages:
   - build
@@ -18,6 +18,7 @@ stages:
 
 build:
   before_script:
+    - apt-get install docker-ce
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   stage: build
   script:
@@ -29,14 +30,13 @@ build:
 release:
   before_script:
     # Install kubectl
-    - apk add --update ca-certificates
-    - apk add --update -t deps curl
-    - curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBE_LATEST_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
-    - chmod +x /usr/local/bin/kubectl
-      # Spit out kube config
+    - sudo apt-get update && sudo apt-get install -y apt-transport-https
+    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+    - sudo apt-get update
+    - sudo apt-get install -y kubectl
+    # Spit out kube config
     - echo "${KUBECONFIG}" | base64 -d >> kubeconfig.yml
-    - echo "#!/usr/bin/env bash\nkubectl --kubeconfig=\"kubeconfig.yml\" patch deployment api -p \"{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}" > deploy.sh
-    - chmod +x deploy.sh
   stage: release
   script:
-    - ./deploy.sh
+    - kubectl --kubeconfig="kubeconfig.yml" patch deployment api -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
