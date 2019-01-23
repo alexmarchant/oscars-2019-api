@@ -1,0 +1,36 @@
+image: golang:1.11
+
+cache:
+  paths:
+    - /apt-cache
+    - /go/src/github.com
+    - /go/src/golang.org
+
+stages:
+  - build
+  - release
+
+build:
+  before_scripts:
+    # Login to docker
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  stage: build
+  script:
+    - docker build -t alexmarchant/oscars-2019-api:latest .
+    - docker push alexmarchant/oscars-2019-api:latest
+
+release:
+  before_scripts:
+    # Install kubectl
+    - sudo apt-get update && sudo apt-get install -y apt-transport-https
+    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+    - sudo apt-get update
+    - sudo apt-get install -y kubectl
+    # Spit out kube config
+    - echo "${KUBECONFIG}" | base64 --decode >> kubeconfig.yml
+  stage: release
+  script:
+    - kubectl --kubeconfig="kubeconfig.yml" \
+      patch deployment api -p \
+      "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
