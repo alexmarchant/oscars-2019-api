@@ -14,8 +14,6 @@ before_script:
 cache:
   paths:
     - /apt-cache
-    - /go/src/github.com
-    - /go/src/golang.org
 
 stages:
   - build
@@ -32,7 +30,7 @@ build:
 release:
   before_script:
     # Install kubectl
-    - sudo apt-get update && sudo apt-get install -y apt-transport-https
+    - apt-get update && apt-get install -y apt-transport-https curl
     - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
     - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
     - sudo apt-get update
