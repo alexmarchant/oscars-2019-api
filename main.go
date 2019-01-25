@@ -20,6 +20,8 @@ func main() {
   PicksRegisterHandlers(r)
   WinnersRegisterHandlers(r)
   SocketsRegisterHandlers(r)
+  r.PathPrefix("/static/").Handler(
+    http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
   // CORS
   cors := cors.New(cors.Options{
