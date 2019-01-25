@@ -15,30 +15,18 @@ Expected response:
   {
     "id": 1,
     "email": "alexjmarchant@gmail.com",
-    "picks": [
-      {
-        "category": "Best Picture",
-        "pick": "Spider-Man: Into the Spider-Verse"
-      },
-      {
-        "category": "Best Director",
-        "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
-      }
-    ]
+    "picks": {
+      "Best Picture": "Spider-Man: Into the Spider-Verse",
+      "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+    }
   },
   {
     "id": 2,
     "email": "larsonlaidlaw@gmail.com",
-    "picks": [
-      {
-        "category": "Best Picture",
-        "pick": "Spider-Man: Into the Spider-Verse"
-      },
-      {
-        "category": "Best Director",
-        "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
-      }
-    ]
+    "picks": {
+      "Best Picture": "Spider-Man: Into the Spider-Verse",
+      "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+    }
   }
 ]
 ```
@@ -90,44 +78,34 @@ Expected response:
 
 ### Picks
 
-#### GET /users/:id/picks
+#### GET /users/current-user/picks
 
-Gets a single user's picks
+*REQUIRES AUTH*
+
+Gets the current user's picks
 
 Expected response:
 
 ```json
-[
-  {
-    "category": "Best Picture",
-    "pick": "Spider-Man: Into the Spider-Verse"
-  },
-  {
-    "category": "Best Director",
-    "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
-  }
-]
+{
+  "Best Picture": "Spider-Man: Into the Spider-Verse",
+  "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+}
 ```
 
-#### POST /users/:id/picks
+#### POST /users/current-user/picks
 
 *REQUIRES AUTH*
 
-Creates/updates a user's picks
+Creates/updates the current user's picks
 
 Expected request:
 
 ```json
-[
-  {
-    "category": "Best Picture",
-    "pick": "Spider-Man: Into the Spider-Verse"
-  },
-  {
-    "category": "Best Director",
-    "pick": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
-  }
-]
+{
+  "Best Picture": "Spider-Man: Into the Spider-Verse",
+  "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+}
 ```
 
 Expected response:
@@ -138,23 +116,17 @@ Status 200
 
 #### POST /winners
 
-*REQUIRES AUTH: must be an admin*
+*REQUIRES AUTH & ADMIN*
 
 Updates winning picks
 
 Expected request:
 
 ```json
-[
-  {
-    "category": "Best Picture",
-    "winner": "Spider-Man: Into the Spider-Verse"
-  },
-  {
-    "category": "Best Director",
-    "winner": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
-  }
-]
+{
+  "Best Picture": "Spider-Man: Into the Spider-Verse",
+  "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+}
 ```
 
 Expected response:
@@ -164,16 +136,6 @@ Status 200
 ## Auth
 
 Must pass token in a header: `Authorization: Bearer <token>`
-
-JWT payload:
-
-```json
-{
-  "id": 1,
-  "email": "alexjmarchant@gmail.com",
-  "admin": true
-}
-```
 
 ## Errors
 
