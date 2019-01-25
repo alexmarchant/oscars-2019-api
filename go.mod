@@ -6,5 +6,6 @@ require (
 	github.com/gorilla/mux v1.6.2
 	github.com/gorilla/websocket v1.4.0
 	github.com/lib/pq v1.0.0
+	github.com/rs/cors v1.6.0
 	golang.org/x/crypto v0.0.0-20190122013713-64072686203f
 )
