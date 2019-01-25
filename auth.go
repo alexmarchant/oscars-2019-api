@@ -72,39 +72,14 @@ func getAuthTokenClaims(r *http.Request) (*TokenClaims, error) {
     }
     return []byte(tokenSecret), nil
   })
+  if err != nil {
+    return nil, err
+  }
 
   // Get claims
   if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
     return claims, nil
   } else {
     return nil, err
-  }
-}
-
-func AuthorizeUser(r *http.Request, id int64) bool {
-  claims, err := getAuthTokenClaims(r)
-  if err != nil {
-    log.Printf("Error authorizing user: %v", err)
-    return false
-  }
-
-  if claims.Id == id {
-    return true
-  } else {
-    return false
-  }
-}
-
-func AuthorizeAdmin(r *http.Request) bool {
-  claims, err := getAuthTokenClaims(r)
-  if err != nil {
-    log.Printf("Error authorizing user: %v", err)
-    return false
-  }
-
-  if claims.Admin {
-    return true
-  } else {
-    return false
   }
 }
