@@ -10,6 +10,7 @@ import (
 func UsersRegisterHandlers(r *mux.Router) {
   r.HandleFunc("/users", UsersCreateHandler).Methods("POST")
   r.HandleFunc("/users", UsersIndexHandler).Methods("GET")
+  r.HandleFunc("/users/current-user", UsersCurrentUserHandler).Methods("GET")
 }
 
 func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -149,3 +150,34 @@ type UsersIndexUser struct {
 }
 
 type UsersIndexResponse []UsersIndexUser
+
+func UsersCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+  // Parse token info
+  claims, err := getAuthTokenClaims(r)
+  if err != nil {
+    w.WriteHeader(http.StatusBadRequest)
+    SendJson(w, JsonError{ Error: "Invalid token" })
+    log.Printf("Invalid token: %v", err)
+    return
+  }
+
+  // Get user
+  var user UsersCurrentUserResponse
+  err = db.QueryRow("SELECT id, email, admin FROM users WHERE id = $1", claims.Id).Scan(&user.Id, &user.Email, &user.Admin)
+  if err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Can't find user" })
+    log.Printf("Can't find user: %v", err)
+    return
+  }
+
+  // Respond
+  w.WriteHeader(http.StatusOK)
+  SendJson(w, user)
+}
+
+type UsersCurrentUserResponse struct {
+  Id int64 `json:"id"`
+  Email string `json:"email"`
+  Admin bool `json:"admin"`
+}
