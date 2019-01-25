@@ -53,6 +53,22 @@ Expected response:
 }
 ```
 
+#### GET /users/current-user
+
+*REQUIRES AUTH*
+
+Get's current user info
+
+Expected response:
+
+```json
+{
+  "id": 13,
+  "email": "alexjmarchant@gmail.com",
+  "admin": true
+}
+```
+
 ### Auth
 
 #### POST /tokens
