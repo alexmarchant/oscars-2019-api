@@ -21,8 +21,15 @@ func main() {
   WinnersRegisterHandlers(r)
   SocketsRegisterHandlers(r)
 
+  // CORS
+  cors := cors.New(cors.Options{
+    AllowedOrigins: []string{"*"},
+    AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+    AllowedHeaders: []string{"*"},
+  })
+
   // Start server
-  http.ListenAndServe(":3000", cors.Default().Handler(r))
+  http.ListenAndServe(":3000", cors.Handler(r))
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
