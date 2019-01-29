@@ -175,13 +175,54 @@ Winners update:
 
 ```json
 {
-  "type": "winners",
+  "type": "winnersUpdated",
   "winners": {
     "Best Picture": "Spider-Man: Into the Spider-Verse",
     "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
   }
 }
 ```
+
+### Chat
+
+*READ/WRITE*
+
+Expected requests:
+
+Send message:
+
+```json
+{
+  "type": "postChatMessage",
+  "token": XXX,
+  "body": "Hello, World!"
+}
+```
+
+Expected responses:
+
+Receive messages:
+
+```json
+{
+  "type": "newChatMessages"
+  "chats": [
+    {
+      "userId": 1,
+      "userEmail": "alexjmarchant@gmail.com",
+      "timestamp": 1234567890,
+      "body": "Hello, World!"
+    }, {
+      "userId": 2,
+      "userEmail": "larsonlaidlaw@gmail.com",
+      "timestamp": 1234567890,
+      "body": "!dlroW ,olleH"
+    }
+  ]
+}
+```
+
+### Errors
 
 Error:
 
@@ -191,9 +232,3 @@ Error:
   "error": "There was an error"
 }
 ```
-
-### Chat
-
-*READ/WRITE*
-
-TODO
