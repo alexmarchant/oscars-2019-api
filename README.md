@@ -162,3 +162,38 @@ All errors respond with an error message and an appropriate status code:
   "error": "Example error message"
 }
 ```
+
+## WebSockets
+
+### Winners
+
+Read only
+
+Expected responses:
+
+Error:
+
+```json
+{
+  "type": "error",
+  "error": "There was an error"
+}
+```
+
+Winners update:
+
+```json
+{
+  "type": "winners",
+  "winners": {
+    "Best Picture": "Spider-Man: Into the Spider-Verse",
+    "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
+  }
+}
+```
+
+### Chat
+
+Read and write
+
+TODO
