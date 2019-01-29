@@ -194,7 +194,7 @@ Send message:
 ```json
 {
   "type": "postChatMessage",
-  "token": XXX,
+  "token": "XXX",
   "body": "Hello, World!"
 }
 ```
@@ -205,7 +205,7 @@ Receive messages:
 
 ```json
 {
-  "type": "newChatMessages"
+  "type": "newChatMessages",
   "chatMessages": [
     {
       "id": 1,
