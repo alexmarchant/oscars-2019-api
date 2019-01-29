@@ -18,7 +18,7 @@
   const host = document.location.host.match('localhost') ?
     document.location.host :
     'api.oscars.alexmarchant.com'
-  conn = new WebSocket('ws://' + document.location.host + '/ws/chat')
+  conn = new WebSocket('ws://' + host + '/ws/chat')
   setupListeners(conn)
 
   const form = document.getElementById('chat-form')

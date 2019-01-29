@@ -7,7 +7,10 @@
 <pre id="winners"></pre>
 
 <script type="text/javascript">
-  conn = new WebSocket("ws://" + document.location.host + "/ws/winners");
+  const host = document.location.host.match('localhost') ?
+    document.location.host :
+    'api.oscars.alexmarchant.com'
+  conn = new WebSocket("ws://" + host + "/ws/winners");
   setupListeners(conn)
 
   function setupListeners(conn) {
