@@ -206,7 +206,7 @@ Receive messages:
 ```json
 {
   "type": "newChatMessages"
-  "chats": [
+  "chatMessages": [
     {
       "userId": 1,
       "userEmail": "alexjmarchant@gmail.com",
