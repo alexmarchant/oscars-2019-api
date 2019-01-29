@@ -167,7 +167,7 @@ All errors respond with an error message and an appropriate status code:
 
 ### Winners
 
-Read only
+*READ ONLY*
 
 Expected responses:
 
@@ -194,6 +194,6 @@ Winners update:
 
 ### Chat
 
-Read and write
+*READ/WRITE*
 
 TODO
