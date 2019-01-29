@@ -171,15 +171,6 @@ All errors respond with an error message and an appropriate status code:
 
 Expected responses:
 
-Error:
-
-```json
-{
-  "type": "error",
-  "error": "There was an error"
-}
-```
-
 Winners update:
 
 ```json
@@ -189,6 +180,15 @@ Winners update:
     "Best Picture": "Spider-Man: Into the Spider-Verse",
     "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
   }
+}
+```
+
+Error:
+
+```json
+{
+  "type": "error",
+  "error": "There was an error"
 }
 ```
 
