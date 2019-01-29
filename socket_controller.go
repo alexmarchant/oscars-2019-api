@@ -23,25 +23,55 @@ func SocketsRegisterHandlers(r *mux.Router) {
 }
 
 func SocketsWinnersHandler(w http.ResponseWriter, r *http.Request) {
+  // Start connection
+  serveWs(winnersHub, w, r, winnersReadHandler)
+
   // Get winners
   var winners string
   err := db.QueryRow("SELECT winners FROM winners WHERE id = 1").Scan(&winners)
   if err != nil {
-    w.WriteHeader(http.StatusInternalServerError)
-    SendJson(w, JsonError{ Error: "Error querying database" })
+    sendError("Error querying database")
     log.Printf("Error querying database: %v", err)
     return
   }
 
-  // Start connection
-  serveWs(winnersHub, w, r, winnersReadHandler)
-
-  // Send winners
-  winnersHub.broadcast <- []byte(winners)
+  // Send over initial message
+  sendWinners(winners)
 }
 
 func winnersReadHandler(message []byte) {
   log.Print(string(message))
+}
+
+func sendWinners(winners string) {
+  // Convert to json
+  message, _ := json.Marshal(&WinnersMessage{
+    Type: "winners",
+    Winners: []byte(winners),
+  })
+
+  // Send winners over as a message
+  winnersHub.broadcast <- message
+}
+
+type WinnersMessage struct {
+  Type string `json:"type"`
+  Winners json.RawMessage `json:"winners"`
+}
+
+func sendError(errMessage string) {
+  message, _ := json.Marshal(&ErrorMessage{
+    Type: "winners",
+    Error: errMessage,
+  })
+
+  // Send winners over as a message
+  winnersHub.broadcast <- message
+}
+
+type ErrorMessage struct {
+  Type string `json:"type"`
+  Error string `json:"error"`
 }
 
 func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {

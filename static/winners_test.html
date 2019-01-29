@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Winners Test</title>
+</head>
+<body>
+<pre id="winners"></pre>
+
+<script type="text/javascript">
+  conn = new WebSocket("ws://" + document.location.host + "/ws/winners");
+  setupListeners(conn)
+
+  function setupListeners(conn) {
+    conn.onclose = (event) => {
+      console.log('Connection lost')
+    }
+    conn.onmessage = (event) => {
+      const message = JSON.parse(event.data)
+      console.log('Message received', message)
+
+      switch (message.type) {
+        case 'winners':
+          document.getElementById('winners').innerHTML = JSON.stringify(message.winners, null, 2)
+          break
+        case 'error':
+          console.error(message.error)
+          break
+      }
+    }
+  }
+</script>
+</body>
+</html>

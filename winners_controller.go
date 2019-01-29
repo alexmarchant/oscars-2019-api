@@ -60,6 +60,9 @@ func WinnersUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
   // Respond
   w.WriteHeader(http.StatusOK)
+
+  // Update sockets
+  sendWinners(string(jsonBodyBytes))
 }
 
 type WinnersUpdateRequest map[string]string
