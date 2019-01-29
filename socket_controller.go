@@ -24,26 +24,26 @@ func SocketsRegisterHandlers(r *mux.Router) {
 
 func SocketsWinnersHandler(w http.ResponseWriter, r *http.Request) {
   // Start connection
-  serveWs(winnersHub, w, r, winnersReadHandler)
+  client := serveWs(winnersHub, w, r, winnersReadHandler)
 
   // Get winners
   var winners string
   err := db.QueryRow("SELECT winners FROM winners WHERE id = 1").Scan(&winners)
   if err != nil {
-    sendError("Error querying database")
+    sendError(client, "Error querying database")
     log.Printf("Error querying database: %v", err)
     return
   }
 
   // Send over initial message
-  sendWinners(winners)
+  sendWinners(client, winners)
 }
 
-func winnersReadHandler(message []byte) {
+func winnersReadHandler(client *SocketClient, message []byte) {
   log.Print(string(message))
 }
 
-func sendWinners(winners string) {
+func sendWinners(client *SocketClient, winners string) {
   // Convert to json
   message, _ := json.Marshal(&WinnersMessage{
     Type: "winners",
@@ -51,7 +51,7 @@ func sendWinners(winners string) {
   })
 
   // Send winners over as a message
-  winnersHub.broadcast <- message
+  client.send <- message
 }
 
 type WinnersMessage struct {
@@ -59,14 +59,14 @@ type WinnersMessage struct {
   Winners json.RawMessage `json:"winners"`
 }
 
-func sendError(errMessage string) {
+func sendError(client *SocketClient, errMessage string) {
   message, _ := json.Marshal(&ErrorMessage{
     Type: "winners",
     Error: errMessage,
   })
 
   // Send winners over as a message
-  winnersHub.broadcast <- message
+  client.send <- message
 }
 
 type ErrorMessage struct {
@@ -76,7 +76,7 @@ type ErrorMessage struct {
 
 func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {
   // Get messages
-  rows, err := db.Query("SELECT id, user_id, body, created_at FROM messages")
+  rows, err := db.Query("SELECT messages.id, messages.user_id, users.email, messages.body, messages.created_at FROM messages INNER JOIN users ON users.id = messages.user_id")
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error querying database" })
@@ -84,13 +84,13 @@ func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  var messages = []Message{}
+  var messages = []*ChatMessage{}
 
   // Iterate over messages
   for rows.Next() {
-    var message Message
+    var message ChatMessage
 
-    err := rows.Scan(&message.Id, &message.UserId, &message.CreatedAt, &message.Body)
+    err := rows.Scan(&message.Id, &message.UserId, &message.UserEmail, &message.Body, &message.CreatedAt)
     if err != nil {
       w.WriteHeader(http.StatusInternalServerError)
       SendJson(w, JsonError{ Error: "Error querying database" })
@@ -98,7 +98,7 @@ func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {
       return
     }
 
-    messages = append(messages, message)
+    messages = append(messages, &message)
   }
 
   // Check iteration for errors
@@ -110,7 +110,11 @@ func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // Convert to json
-  messagesBytes, err := json.Marshal(messages)
+  response := &NewChatMessagesMessage{
+    Type: "newChatMessages",
+    ChatMessages: messages,
+  }
+  messagesBytes, err := json.Marshal(response)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error querying database" })
@@ -119,19 +123,127 @@ func SocketsChatHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   // Start connection
-  serveWs(chatHub, w, r, chatReadHandler)
+  client := serveWs(chatHub, w, r, chatReadHandler)
 
   // Send messages
-  chatHub.broadcast <- messagesBytes
+  client.send <- messagesBytes
 }
 
-type Message struct {
+type NewChatMessagesMessage struct {
+  Type string `json:"type"`
+  ChatMessages []*ChatMessage `json:"chatMessages"`
+}
+
+type ChatMessage struct {
   Id int64 `json:"id"`
   UserId int64 `json:"userId"`
+  UserEmail string `json:"email"`
   Body string `json:"body"`
   CreatedAt string `json:"createdAt"`
 }
 
-func chatReadHandler(message []byte) {
-  log.Print(string(message))
+func chatReadHandler(client *SocketClient, message []byte) {
+  var jsonMessage map[string]interface{}
+  err := json.Unmarshal(message, &jsonMessage)
+  if err != nil {
+    message, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Can't parse message",
+    })
+    client.send <- message
+    log.Printf("Can't parse message: %v", err)
+    return
+  }
+
+  switch messageType := jsonMessage["type"]; messageType {
+  case "postChatMessage":
+    postChatMessage(client, jsonMessage)
+  default:
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Invalid message type",
+    })
+    client.send <- errorMessage
+    log.Printf("Invalid message type: %v", jsonMessage)
+  }
+}
+
+func postChatMessage(client *SocketClient, message map[string]interface{}) {
+  var token string
+  var body string
+  var ok bool
+
+  // Validate token is string
+  if token, ok = message["token"].(string); !ok {
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Missing token",
+    })
+    client.send <- errorMessage
+    log.Printf("Missing token: %v", message)
+    return
+  }
+
+  // Validate body is string
+  if body, ok = message["body"].(string); !ok {
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Missing body",
+    })
+    client.send <- errorMessage
+    log.Printf("Missing body: %v", message)
+    return
+  }
+
+
+  // Get token claims
+  claims, err := getAuthTokenClaimsFromString(token)
+  if err != nil {
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Invalid token",
+    })
+    client.send <- errorMessage
+    log.Printf("Invalid token: %v", message)
+    return
+  }
+
+  // Create message
+  var id int64
+  var createdAt string
+  err = db.QueryRow("INSERT INTO messages (user_id, body) VALUES ($1, $2) RETURNING id, created_at", claims.Id, body).Scan(&id, &createdAt)
+  if err != nil {
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Error saving to database",
+    })
+    client.send <- errorMessage
+    log.Printf("Error saving to database: %v", message)
+    return
+  }
+
+  // Create responses
+  responseMessage := &ChatMessage{
+    Id: id,
+    UserId: claims.Id,
+    UserEmail: claims.Email,
+    Body: body,
+    CreatedAt: createdAt,
+  }
+  response := &NewChatMessagesMessage{
+    Type: "newChatMessages",
+    ChatMessages: []*ChatMessage{responseMessage},
+  }
+  messagesBytes, err := json.Marshal(response)
+  if err != nil {
+    errorMessage, _ := json.Marshal(&ErrorMessage{
+      Type: "error",
+      Error: "Error generating response",
+    })
+    client.send <- errorMessage
+    log.Printf("Error generating response: %v", message)
+    return
+  }
+
+  chatHub.broadcast <- messagesBytes
 }

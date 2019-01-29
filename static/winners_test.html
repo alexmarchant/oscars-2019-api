@@ -23,7 +23,7 @@
           document.getElementById('winners').innerHTML = JSON.stringify(message.winners, null, 2)
           break
         case 'error':
-          console.error(message.error)
+          alert(message.error)
           break
       }
     }

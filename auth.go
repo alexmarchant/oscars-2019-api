@@ -57,13 +57,7 @@ func getAuthTokenString(r *http.Request) (string, error) {
   return tokenString, nil
 }
 
-func getAuthTokenClaims(r *http.Request) (*TokenClaims, error) {
-  // Get token string
-  tokenString, err := getAuthTokenString(r)
-  if err != nil {
-    return nil, err
-  }
-
+func getAuthTokenClaimsFromString(tokenString string) (*TokenClaims, error) {
   // Decode token
   token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
     // Validate method is what we expect
@@ -82,4 +76,14 @@ func getAuthTokenClaims(r *http.Request) (*TokenClaims, error) {
   } else {
     return nil, err
   }
+}
+
+func getAuthTokenClaims(r *http.Request) (*TokenClaims, error) {
+  // Get token string
+  tokenString, err := getAuthTokenString(r)
+  if err != nil {
+    return nil, err
+  }
+
+  return getAuthTokenClaimsFromString(tokenString)
 }

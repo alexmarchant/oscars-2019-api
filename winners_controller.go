@@ -62,7 +62,13 @@ func WinnersUpdateHandler(w http.ResponseWriter, r *http.Request) {
   w.WriteHeader(http.StatusOK)
 
   // Update sockets
-  sendWinners(string(jsonBodyBytes))
+  message, _ := json.Marshal(&WinnersMessage{
+    Type: "winners",
+    Winners: jsonBodyBytes,
+  })
+
+  // Send winners over as a message
+  winnersHub.broadcast <- message
 }
 
 type WinnersUpdateRequest map[string]string

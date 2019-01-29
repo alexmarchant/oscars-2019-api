@@ -1,56 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Chat Example</title>
+  <title>Chat Test</title>
 </head>
 <body>
-<div id="winners"></div>
-<form action="" method="post">
-  <input id="token-input" type="text" class="text" value="" name="token" placeholder="Token">
-  <input type="submit" value="Connect">
+<input id="token-input" type="text" value="" placeholder="Token">
+
+<form id="chat-form">
+  <input id="chat-input" type="text" value="" placeholder="Message">
+  <input type="submit" value="Send">
 </form>
+
+<pre id="chats"></pre>
 
 <script type="text/javascript">
   let conn
-  let token
+  const host = document.location.host.match('localhost') ?
+    document.location.host :
+    'api.oscars.alexmarchant.com'
+  conn = new WebSocket('ws://' + document.location.host + '/ws/chat')
+  setupListeners(conn)
 
-  const form = document.querySelector('form')
+  const form = document.getElementById('chat-form')
   form.addEventListener('submit', (event) => {
     event.preventDefault()
-    token = document.getElementById('token-input').value
-    connect()
+    const body = document.getElementById('chat-input').value
+    const token = document.getElementById('token-input').value
+    sendMessage(body, token)
   })
 
-  function connect() {
-    conn = new WebSocket("ws://" + document.location.host + "/ws/chat");
-    setupListeners(conn)
-  }
-
-  function setupListeners(conn) {
-    conn.onopen = (event) => {
-      ws.send(JSON.stringify({
-        type: 'authenticate',
-        payload: { token: token }
-      }))
-    }
+  function setupListeners() {
     conn.onclose = (event) => {
       console.log('Connection lost')
+      conn = null
     }
+
     conn.onmessage = (event) => {
-      console.log('Message received')
       const message = JSON.parse(event.data)
+      console.log('Message received', message)
+
       switch (message.type) {
-        case 'status':
-          console.log(message.status)
+        case 'newChatMessages':
+          message.chatMessages.forEach(chat => {
+            document.getElementById('chats').innerHTML += JSON.stringify(chat) + '\n'
+          })
           break
         case 'error':
-          console.error(message.error)
-          break
-        case 'winners':
-          console.log(message.winners)
+          alert(message.error)
           break
       }
     }
+  }
+
+  function sendMessage(body, token) {
+    if (!conn) {
+      alert('No connection')
+    }
+    if (!token) {
+      alert('No token')
+    }
+    if (!body) {
+      alert('No chat message')
+    }
+
+    conn.send(JSON.stringify({
+      type: 'postChatMessage',
+      token: token,
+      body: body,
+    }))
   }
 </script>
 </body>

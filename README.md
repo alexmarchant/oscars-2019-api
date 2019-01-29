@@ -208,14 +208,16 @@ Receive messages:
   "type": "newChatMessages"
   "chatMessages": [
     {
+      "id": 1,
       "userId": 1,
       "userEmail": "alexjmarchant@gmail.com",
-      "timestamp": 1234567890,
+      "createdAt": "2019-01-28T23:02:36.651693-05:00",
       "body": "Hello, World!"
     }, {
+      "id": 2,
       "userId": 2,
       "userEmail": "larsonlaidlaw@gmail.com",
-      "timestamp": 1234567890,
+      "createdAt": "2019-01-28T23:02:36.651693-05:00",
       "body": "!dlroW ,olleH"
     }
   ]

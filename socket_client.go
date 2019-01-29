@@ -53,7 +53,7 @@ type SocketClient struct {
 // The application runs readPump in a per-connection goroutine. The application
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
-func (c *SocketClient) readPump(cb func ([]byte)) {
+func (c *SocketClient) readPump(cb func (*SocketClient, []byte)) {
   defer func() {
     c.hub.unregister <- c
     c.conn.Close()
@@ -70,8 +70,7 @@ func (c *SocketClient) readPump(cb func ([]byte)) {
       break
     }
     message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-    c.hub.broadcast <- message
-    cb(message)
+    cb(c, message)
   }
 }
 
@@ -122,11 +121,11 @@ func (c *SocketClient) writePump() {
 }
 
 // serveWs handles websocket requests from the peer.
-func serveWs(hub *SocketHub, w http.ResponseWriter, r *http.Request, cb func ([]byte)) {
+func serveWs(hub *SocketHub, w http.ResponseWriter, r *http.Request, cb func (*SocketClient, []byte)) *SocketClient {
   conn, err := upgrader.Upgrade(w, r, nil)
   if err != nil {
     log.Println(err)
-    return
+    return nil
   }
   client := &SocketClient{hub: hub, conn: conn, send: make(chan []byte, 256)}
   client.hub.register <- client
@@ -135,4 +134,6 @@ func serveWs(hub *SocketHub, w http.ResponseWriter, r *http.Request, cb func ([]
   // new goroutines.
   go client.writePump()
   go client.readPump(cb)
+
+  return client
 }
