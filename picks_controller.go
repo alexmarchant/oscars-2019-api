@@ -17,7 +17,7 @@ func PicksReadHandler(w http.ResponseWriter, r *http.Request) {
   // Parse token info
   claims, err := getAuthTokenClaims(r)
   if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusUnauthorized)
     SendJson(w, JsonError{ Error: "Invalid token" })
     log.Printf("Invalid token: %v", err)
     return
@@ -51,7 +51,7 @@ func PicksUpdateHandler(w http.ResponseWriter, r *http.Request) {
   // Parse token info
   claims, err := getAuthTokenClaims(r)
   if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
+    w.WriteHeader(http.StatusUnauthorized)
     SendJson(w, JsonError{ Error: "Invalid token" })
     log.Printf("Invalid token: %v", err)
     return
