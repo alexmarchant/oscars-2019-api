@@ -15,6 +15,7 @@ Expected response:
   {
     "id": 1,
     "email": "alexjmarchant@gmail.com",
+    "paid": true,
     "picks": {
       "Best Picture": "Spider-Man: Into the Spider-Verse",
       "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
@@ -23,6 +24,7 @@ Expected response:
   {
     "id": 2,
     "email": "larsonlaidlaw@gmail.com",
+    "paid": false,
     "picks": {
       "Best Picture": "Spider-Man: Into the Spider-Verse",
       "Best Director": "Bob Persichetti, Peter Ramsey, Rodney Rothman"
@@ -65,7 +67,22 @@ Expected response:
 {
   "id": 13,
   "email": "alexjmarchant@gmail.com",
-  "admin": true
+  "admin": true,
+  "paid": true
+}
+```
+
+#### PATCH /users/current-user
+
+*REQUIRES AUTH*
+
+Update current user
+
+Expected request:
+
+```json
+{
+  "paid": true
 }
 ```
 

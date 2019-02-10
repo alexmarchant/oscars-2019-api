@@ -11,6 +11,7 @@ func UsersRegisterHandlers(r *mux.Router) {
   r.HandleFunc("/users", UsersCreateHandler).Methods("POST")
   r.HandleFunc("/users", UsersIndexHandler).Methods("GET")
   r.HandleFunc("/users/current-user", UsersCurrentUserHandler).Methods("GET")
+  r.HandleFunc("/users/current-user", UsersPatchCurrentUserHandler).Methods("PATCH")
 }
 
 func UsersCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +103,7 @@ type UsersCreateResponse struct {
 
 func UsersIndexHandler(w http.ResponseWriter, r *http.Request) {
   // Query users
-  rows, err := db.Query("SELECT id, email, picks FROM users")
+  rows, err := db.Query("SELECT id, email, paid, picks FROM users")
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Error querying database" })
@@ -117,7 +118,7 @@ func UsersIndexHandler(w http.ResponseWriter, r *http.Request) {
     var user UsersIndexUser
     var picks string
 
-    err := rows.Scan(&user.Id, &user.Email, &picks)
+    err := rows.Scan(&user.Id, &user.Email, &user.Paid, &picks)
     if err != nil {
       w.WriteHeader(http.StatusInternalServerError)
       SendJson(w, JsonError{ Error: "Error querying database" })
@@ -146,6 +147,7 @@ func UsersIndexHandler(w http.ResponseWriter, r *http.Request) {
 type UsersIndexUser struct {
   Id int64 `json:"id"`
   Email string `json:"email"`
+  Paid bool `json:"paid"`
   Picks json.RawMessage `json:"picks"`
 }
 
@@ -163,7 +165,7 @@ func UsersCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 
   // Get user
   var user UsersCurrentUserResponse
-  err = db.QueryRow("SELECT id, email, admin FROM users WHERE id = $1", claims.Id).Scan(&user.Id, &user.Email, &user.Admin)
+  err = db.QueryRow("SELECT id, email, admin, paid FROM users WHERE id = $1", claims.Id).Scan(&user.Id, &user.Email, &user.Admin, &user.Paid)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     SendJson(w, JsonError{ Error: "Can't find user" })
@@ -180,4 +182,43 @@ type UsersCurrentUserResponse struct {
   Id int64 `json:"id"`
   Email string `json:"email"`
   Admin bool `json:"admin"`
+  Paid bool `json:"paid"`
+}
+
+func UsersPatchCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+  // Parse token info
+  claims, err := getAuthTokenClaims(r)
+  if err != nil {
+    w.WriteHeader(http.StatusUnauthorized)
+    SendJson(w, JsonError{ Error: "Invalid token" })
+    log.Printf("Invalid token: %v", err)
+    return
+  }
+
+  // Parse request
+  decoder := json.NewDecoder(r.Body)
+  var body PatchCurrentUserRequest
+  err = decoder.Decode(&body)
+  if err != nil {
+    w.WriteHeader(http.StatusBadRequest)
+    SendJson(w, JsonError{ Error: "Error parsing request" })
+    log.Print("Error parsing request")
+    return
+  }
+
+  // Update postgres data
+  _, err = db.Exec("UPDATE users SET paid = $1 WHERE id = $2", body.Paid, claims.Id)
+  if err != nil {
+    w.WriteHeader(http.StatusInternalServerError)
+    SendJson(w, JsonError{ Error: "Error updating picks" })
+    log.Printf("Error updating picks: %v", err)
+    return
+  }
+
+  // Respond
+  w.WriteHeader(http.StatusOK)
+}
+
+type PatchCurrentUserRequest struct {
+  Paid bool `json:"paid"`
 }
