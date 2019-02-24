@@ -186,37 +186,10 @@ type UsersCurrentUserResponse struct {
 }
 
 func UsersPatchCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
-  // Parse token info
-  claims, err := getAuthTokenClaims(r)
-  if err != nil {
-    w.WriteHeader(http.StatusUnauthorized)
-    SendJson(w, JsonError{ Error: "Invalid token" })
-    log.Printf("Invalid token: %v", err)
-    return
-  }
-
-  // Parse request
-  decoder := json.NewDecoder(r.Body)
-  var body PatchCurrentUserRequest
-  err = decoder.Decode(&body)
-  if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
-    SendJson(w, JsonError{ Error: "Error parsing request" })
-    log.Print("Error parsing request")
-    return
-  }
-
-  // Update postgres data
-  _, err = db.Exec("UPDATE users SET paid = $1 WHERE id = $2", body.Paid, claims.Id)
-  if err != nil {
-    w.WriteHeader(http.StatusInternalServerError)
-    SendJson(w, JsonError{ Error: "Error updating picks" })
-    log.Printf("Error updating picks: %v", err)
-    return
-  }
-
-  // Respond
-  w.WriteHeader(http.StatusOK)
+  w.WriteHeader(http.StatusUnauthorized)
+  SendJson(w, JsonError{ Error: "Voting has been disabled" })
+  log.Print("Voting has been disabled")
+  return
 }
 
 type PatchCurrentUserRequest struct {
