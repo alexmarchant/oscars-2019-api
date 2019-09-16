@@ -1,3 +1,4 @@
+// +heroku goVersion go1.12.5
 module github.com/alexmarchant/oscars-2019-api
 
 require (
