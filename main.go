@@ -1,40 +1,48 @@
 package main
 
 import (
-  "github.com/rs/cors"
-  "github.com/gorilla/mux"
-  "net/http"
-  "io"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
-  r := mux.NewRouter()
+	r := mux.NewRouter()
 
-  // DB
-  ConnectDB()
+	// DB
+	ConnectDB()
 
-  // Routes
-  r.HandleFunc("/", HomeHandler)
-  UsersRegisterHandlers(r)
-  TokensRegisterHandlers(r)
-  PicksRegisterHandlers(r)
-  WinnersRegisterHandlers(r)
-  SocketsRegisterHandlers(r)
-  r.PathPrefix("/static/").Handler(
-    http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	// Routes
+	r.HandleFunc("/", HomeHandler)
+	UsersRegisterHandlers(r)
+	TokensRegisterHandlers(r)
+	PicksRegisterHandlers(r)
+	WinnersRegisterHandlers(r)
+	SocketsRegisterHandlers(r)
+	r.PathPrefix("/static/").Handler(
+		http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
-  // CORS
-  cors := cors.New(cors.Options{
-    AllowedOrigins: []string{"*"},
-    AllowedMethods: []string{"GET", "POST", "OPTIONS", "PATCH"},
-    AllowedHeaders: []string{"*"},
-  })
+	// CORS
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "OPTIONS", "PATCH"},
+		AllowedHeaders: []string{"*"},
+	})
 
-  // Start server
-  http.ListenAndServe(":3000", cors.Handler(r))
+	// Start server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	portString := fmt.Sprintf(":%s", port)
+	http.ListenAndServe(portString, cors.Handler(r))
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-  w.WriteHeader(http.StatusOK)
-  io.WriteString(w, "OK")
+	w.WriteHeader(http.StatusOK)
+	io.WriteString(w, "OK")
 }
